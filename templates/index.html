@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Movie Explorer — Browse{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+  <!-- ═══════════════════════════════════════════
+       LEFT COLUMN — filter form
+  ════════════════════════════════════════════ -->
+  <div class="col-lg-3">
+    <div class="card filter-card p-3">
+      <h5 class="mb-3 fw-bold">🔍 Filter Movies</h5>
+
+      <!--
+        The form uses method="GET" so all filter values appear in the URL.
+        This makes it easy to share or bookmark a filtered view.
+      -->
+      <form method="GET" action="/">
+
+        <!-- ── Title search ── -->
+        <div class="mb-3">
+          <label for="search" class="form-label fw-semibold">Title</label>
+          <input
+            type="text"
+            class="form-control"
+            id="search"
+            name="search"
+            placeholder="e.g. Dark Knight"
+            value="{{ search }}"
+          >
+        </div>
+
+        <!-- ── Genre dropdown ── -->
+        <div class="mb-3">
+          <label for="genre" class="form-label fw-semibold">Genre</label>
+          <!--
+            TODO A: Replace the static <select> below with a Jinja2 loop that
+                    generates one <option> per genre from the `genres` variable.
+                    The currently selected genre should have the `selected` attribute.
+                    Hint: compare each genre to `selected_genre`.
+          -->
+          <select class="form-select" id="genre" name="genre">
+            <option value="">All genres</option>
+            <!-- your loop goes here -->
+          </select>
+        </div>
+
+        <!-- ── Director dropdown ── -->
+        <div class="mb-3">
+          <label for="director" class="form-label fw-semibold">Director</label>
+          <!--
+            TODO B: Do the same as TODO A but for the `directors` variable,
+                    comparing each value to `selected_director`.
+          -->
+          <select class="form-select" id="director" name="director">
+            <option value="">All directors</option>
+            <!-- your loop goes here -->
+          </select>
+        </div>
+
+        <!-- ── Year range ── -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            Release year: <span id="year-label">{{ year_min }} – {{ year_max }}</span>
+          </label>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="range" class="form-range" id="year_min" name="year_min"
+                   min="1970" max="2024" value="{{ year_min }}"
+                   oninput="updateLabel('year-label', this.value, yearMaxEl.value, ' – ')">
+            <input type="range" class="form-range" id="year_max" name="year_max"
+                   min="1970" max="2024" value="{{ year_max }}"
+                   oninput="updateLabel('year-label', yearMinEl.value, this.value, ' – ')">
+          </div>
+          <div class="d-flex justify-content-between text-muted" style="font-size:.75rem">
+            <span>1970</span><span>2024</span>
+          </div>
+        </div>
+
+        <!-- ── Rating range ── -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold">
+            Rating: <span id="rating-label">{{ rating_min }} – {{ rating_max }}</span>
+          </label>
+          <div class="d-flex gap-2 align-items-center">
+            <input type="range" class="form-range" id="rating_min" name="rating_min"
+                   min="0" max="10" step="0.1" value="{{ rating_min }}"
+                   oninput="updateLabel('rating-label', this.value, ratingMaxEl.value, ' – ')">
+            <input type="range" class="form-range" id="rating_max" name="rating_max"
+                   min="0" max="10" step="0.1" value="{{ rating_max }}"
+                   oninput="updateLabel('rating-label', ratingMinEl.value, this.value, ' – ')">
+          </div>
+          <div class="d-flex justify-content-between text-muted" style="font-size:.75rem">
+            <span>0</span><span>10</span>
+          </div>
+        </div>
+
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-dark">Apply Filters</button>
+          <a href="/" class="btn btn-outline-secondary">Reset</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       RIGHT COLUMN — results table
+  ════════════════════════════════════════════ -->
+  <div class="col-lg-9">
+
+    <!-- Result count -->
+    <p class="result-count mb-2">
+      Showing <strong>{{ result_count }}</strong> movie{{ 's' if result_count != 1 else '' }}
+    </p>
+
+    <!--
+      TODO C: Wrap the table below in a Jinja2 if/else block.
+              If `movies` is empty, show a friendly "No results found" message instead.
+              Hint: use {% if movies %} ... {% else %} ... {% endif %}
+    -->
+    <div class="card filter-card">
+      <div class="table-responsive">
+        <table class="table table-hover movie-table mb-0">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Genre</th>
+              <th>Year</th>
+              <th>Rating</th>
+              <th>Director</th>
+              <th>Duration</th>
+              <th>Country</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!--
+              TODO D: Replace the two static example rows below with a Jinja2
+                      loop over the `movies` variable. Display each column's value.
+
+                      For the Rating cell, use a conditional class:
+                        rating >= 8.5  → class "rating-pill rating-high"
+                        rating >= 7.0  → class "rating-pill rating-mid"
+                        otherwise      → class "rating-pill rating-low"
+
+                      For Duration: display it as "Xh Ym" (e.g. 152 min → "2h 32m")
+                      Hint: use the // and % operators inside {{ }}
+            -->
+            <tr>
+              <td><strong>Example Movie</strong></td>
+              <td><span class="badge bg-secondary badge-genre">Genre</span></td>
+              <td>2024</td>
+              <td><span class="rating-pill rating-high">9.0</span></td>
+              <td>Some Director</td>
+              <td>2h 30m</td>
+              <td>USA</td>
+            </tr>
+            <tr>
+              <td><strong>Another Movie</strong></td>
+              <td><span class="badge bg-secondary badge-genre">Genre</span></td>
+              <td>2020</td>
+              <td><span class="rating-pill rating-mid">7.5</span></td>
+              <td>Other Director</td>
+              <td>1h 50m</td>
+              <td>France</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+  // Convenience references used by the slider oninput handlers
+  const yearMinEl    = document.getElementById("year_min");
+  const yearMaxEl    = document.getElementById("year_max");
+  const ratingMinEl  = document.getElementById("rating_min");
+  const ratingMaxEl  = document.getElementById("rating_max");
+
+  // Updates the human-readable label above each slider pair
+  function updateLabel(labelId, valA, valB, sep) {
+    document.getElementById(labelId).textContent =
+      parseFloat(valA).toFixed(valA % 1 === 0 && !labelId.includes("rating") ? 0 : 1)
+      + sep +
+      parseFloat(valB).toFixed(valB % 1 === 0 && !labelId.includes("rating") ? 0 : 1);
+  }
+</script>
+{% endblock %}
