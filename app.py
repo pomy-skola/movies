@@ -22,11 +22,14 @@ def get_filter_options():
 
     # TODO 1: Write a query that returns every distinct genre, sorted A→Z.
     #         Store the results in `genres`.
-    genres = []
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT genre FROM movies ORDER BY genre ASC")
+    genres = [row[0] for row in cursor.fetchall()]
 
     # TODO 2: Write a query that returns every distinct director, sorted A→Z.
     #         Store the results in `directors`.
-    directors = []
+    cursor.execute("SELECT DISTINCT director FROM movies ORDER BY director ASC")
+    directors = [row[0] for row in cursor.fetchall()]
 
     conn.close()
     return genres, directors
@@ -65,15 +68,32 @@ def index():
     #         movie title CONTAINS the search text (case-insensitive).
     #         Hint: use LIKE with % wildcards, e.g.  LIKE ?  with value "%text%"
     #         Hint: wrap both sides in UPPER() to make it case-insensitive.
+    if search:
+        conditions.append("UPPER(title) LIKE ?")
+        params.append("%" + search.upper() + "%")
 
     # TODO 4: If `genre` is not empty, add a condition that matches the genre
     #         exactly (case-insensitive).
+    if genre:
+        conditions.append("UPPER(genre) = ?")
+        params.append(genre.upper())
 
     # TODO 5: If `director` is not empty, add a condition that matches the
     #         director exactly (case-insensitive).
+    if director:
+        conditions.append("UPPER(director) = ?")
+        params.append(director.upper())
 
     # TODO 6: Add conditions for year_min, year_max, rating_min, rating_max
     #         so that only movies within those ranges are returned.
+    conditions.append("year >= ?")
+    params.append(year_min)
+    conditions.append("year <= ?")
+    params.append(year_max)
+    conditions.append("rating >= ?")
+    params.append(rating_min)
+    conditions.append("rating <= ?")
+    params.append(rating_max)
 
     # Assemble the final query
     if conditions:
@@ -83,7 +103,11 @@ def index():
 
     # TODO 7: Execute the query with `params` and fetch all results.
     #         Store them in `movies`.
-    movies = []
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(query, params)
+    movies = cursor.fetchall()
+    conn.close()
 
     genres, directors = get_filter_options()
 
